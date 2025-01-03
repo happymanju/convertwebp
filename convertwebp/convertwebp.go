@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var targetFileExtensions []string = []string{".jpg", ".jpeg", ".png"}
+var targetFileExtensions []string = []string{".jpg", ".JPG", ".jpeg", ".png"}
 
 func Run(args []string) int {
 	currentDir, _ := os.Getwd()
