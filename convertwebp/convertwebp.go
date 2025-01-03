@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var targetFileExtensions []string = []string{"jpg", "jpeg", "png"}
+var targetFileExtensions []string = []string{".jpg", ".jpeg", ".png"}
 
 func Run(args []string) int {
 	currentDir, _ := os.Getwd()
@@ -25,28 +25,33 @@ func Run(args []string) int {
 		return 1
 	}
 
-	fmt.Printf("Converting images in %s...\n", currentDir)
+	var images map[string]string = make(map[string]string)
 
 	for _, file := range allFiles {
 		if !file.IsDir() {
-			convertFlag := false
-			var extIndex int
-			for k, fileExtension := range targetFileExtensions {
-				if strings.Contains(file.Name(), fileExtension) {
-					convertFlag = true
-					extIndex = k
-				}
-			}
-			if convertFlag {
-				sp := exec.Command("cwebp", "-progress", "-pass", "10", "-m", "6", file.Name(), "-o", filepath.Join("webp", strings.Replace(file.Name(), targetFileExtensions[extIndex], "webp", 1)))
-
-				fmt.Printf("Converting: %s...\n", file.Name())
-				err = sp.Run()
-				if err != nil {
-					log.Printf("error processing file %s: %v\n", file.Name(), err)
+			for _, v := range targetFileExtensions {
+				if strings.Contains(file.Name(), v) {
+					images[file.Name()] = v
 				}
 			}
 		}
+	}
+
+	fmt.Printf("Converting images in %s...\n", currentDir)
+	fmt.Printf("Found %d image files\n", len(images))
+
+	counter := 1
+
+	for file, ext := range images {
+		sp := exec.Command("cwebp", "-progress", "-pass", "10", "-m", "6", file, "-o", filepath.Join("webp", strings.Replace(file, ext, ".webp", 1)))
+
+		fmt.Printf("Converting %d of %d: %s...\n", counter, len(images), file)
+		err = sp.Run()
+		if err != nil {
+			log.Printf("error processing file %s: %v\n", file, err)
+		}
+		counter++
+
 	}
 
 	return 0
